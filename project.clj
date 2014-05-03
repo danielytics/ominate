@@ -1,4 +1,4 @@
-(defproject ominate "0.1.0-SNAPSHOT"
+(defproject ominate "0.1.0"
   :description "Animate your Om components"
   :url "http://github.com/danielytics/ominate"
   :author "Dan Kersten"
@@ -9,4 +9,5 @@
                  [org.clojure/clojurescript "0.0-2202"]
                  [om "0.6.2"]
                  [domina "1.0.2"]]
-  cljsbuild {:builds []})
+  :plugins  [[lein-cljsbuild "1.0.2"]]
+  :cljsbuild {:builds []})

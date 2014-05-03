@@ -20,16 +20,16 @@
 (defn back-forward
   "Play reverse animation for half duraion, then play animation for half duration "
   [x]
-  (if (< v 0.5)
-    (- 1 (* 2 v))
-    (- (* 2 v) 1)))
+  (if (< x 0.5)
+    (- 1 (* 2 x))
+    (- (* 2 x) 1)))
 
 ;; Easing functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Adapted from https://github.com/warrenm/AHEasing
 
 (def PI   (.-PI js/Math))
-(def PI/2 (/ (.-PI js/Math) 2))
+(def PI_2 (/ (.-PI js/Math) 2))
 
 (def linear identity)
 
@@ -52,7 +52,7 @@
     (* 2 p p)
     (+ (* 4 p) (* -2 p p) -1)))
 
-(defn cude-in
+(defn cube-in
   "Modeled after the cubic y = x^3"
   [p]
   (* p p p))
@@ -61,7 +61,7 @@
   "Modeled after the cubic y = (x - 1)^3 + 1"
   [p]
   (let [f (dec p)]
-    (* f f f 1)))
+    (inc (* f f f))))
 
 (defn cube-in-out
   "Modeled after the piecewise cubic
@@ -71,7 +71,7 @@
   (if (< p 0.5)
     (* p p p 4)
     (let [f (- (* 2 p) 2)]
-      (* 0.5 f f f 1))))
+      (inc (* 0.5 f f f)))))
 
 (defn quart-in
   "Modeled after the quartic x^4"
@@ -118,12 +118,12 @@
 (defn sine-in
   "Modeled after quarter-cycle of sine wave"
   [p]
-  (inc (.sin js/Math (* (dec p) PI/2))))
+  (inc (.sin js/Math (* (dec p) PI_2))))
 
 (defn sine-out
   "Modeled after quarter-cycle of sine wave (different phase)"
   [p]
-  (.sin js/MAth (* p PI/2)))
+  (.sin js/Math (* p PI_2)))
 
 (defn sine-in-out
   "Modeled after half sine wave"
@@ -152,14 +152,14 @@
 (defn exp-in
   "Modeled after the exponential function y = 2^(10(x - 1))"
   [p]
-  (if (p == 0)
+  (if (= p 0)
     p
     (.pow js/Math 2 (* 10 (dec p)))))
 
 (defn exp-out
   "Modeled after the exponential function y = -2^(-10x) + 1"
   [p]
-  (if (p == 0)
+  (if (= p 1)
     p
     (- 1 (.pow js/Math 2 (* -10 p)))))
 
@@ -175,35 +175,36 @@
       (inc (* -0.5 (.pow js/Math 2 (+ (* -20 p) 10)))))))
 
 (defn elastic-in
-  "Modeled after the damped sine wave y = sin(13pi/2*x)*pow(2, 10 * (x - 1))"
+  "Modeled after the damped sine wave y = sin(13PI_2*x)*pow(2, 10 * (x - 1))"
   [p]
-  (* (.sin js/Math (* 13 PI/2 p))
+  (* (.sin js/Math (* 13 PI_2 p))
      (.pow js/Math 2 (* 10 (dec p)))))
 
 (defn elastic-out
-  "Modeled after the damped sine wave y = sin(-13pi/2*(x + 1))*pow(2, -10x) + 1"
+  "Modeled after the damped sine wave y = sin(-13PI_2*(x + 1))*pow(2, -10x) + 1"
   [p]
-  (inc (* (.sin js/Math (* -13 PI/2 (inc p)))
+  (inc (* (.sin js/Math (* -13 PI_2 (inc p)))
           (.pow js/Math 2 (* -10 p)))))
 
 (defn elastic-in-out
   "Modeled after the piecewise exponentially-damped sine wave:          
-   y = (1/2)*sin(13pi/2*(2*x))*pow(2, 10 * ((2*x) - 1))        [0,0.5)  
-   y = (1/2)*(sin(-13pi/2*((2x-1)+1))*pow(2,-10(2*x-1)) + 2)   [0.5, 1]"
+   y = (1/2)*sin(13PI_2*(2*x))*pow(2, 10 * ((2*x) - 1))        [0,0.5)  
+   y = (1/2)*(sin(-13PI_2*((2x-1)+1))*pow(2,-10(2*x-1)) + 2)   [0.5, 1]"
   [p]
   (if (< p 0.5)
     (* 0.5
-       (.sin js/Math (* 13 PI/2 2 p))
+       (.sin js/Math (* 13 PI_2 2 p))
        (.pow js/Math 2 (* 10 (dec (* 2 p)))))
     (* 0.5
-       (.sin js/Math (* -13 PI/2 (* 2 x)))
-       (.pow js/Math 2 (* -10 (inc (* 2 p)))))))
+       (+ (* (.sin js/Math (* -13 PI_2 (* 2 p)))
+             (.pow js/Math 2 (* -10 (inc (* 2 p)))))
+          2))))
 
 (defn back-in
   "Modeled after the overshooting cubic y = x^3-x*sin(x*pi)"
   [p]
   (- (* p p p)
-     (* p (.sin js/Math (* 2 PI)))))
+     (* p (.sin js/Math (* p PI)))))
 
 (defn back-out
   "Modeled after overshooting cubic y = 1-((1-x)^3-(1-x)*sin((1-x)*pi))"
@@ -221,23 +222,26 @@
     (let [f (* 2 p)]
       (* 0.5 (- (* f f f)
                 (.sin js/Math (* f PI)))))
-    (let [f (- 1 (dec (* 2 PI)))]
+    (let [f (- 1 (dec (* 2 p)))]
       (+ (* 0.5 (- 1 (- (* f f f)
                         (* f (.sin js/Math (* f PI))))))
          0.5))))
 
 (defn bounce-out [p]
-  (condp < p
-    (/ 4 11.0) (/ (* 121 p p) 16.0)
-    (/ 8 11.0) (+ (- (* (/ 363 40.0) p p)
-                     (* (/ 99 10.0) p))
-                  (/ 17 5.0))
-    (/ 9 10.0) (+ (- (* (/ 4356 361/0) p p)
-                     (* (/ 35442 1805.0) p))
-                  (/ 16061 1805.0))
-    (+ (- (* (/ 54 5.0) p p)
-          (* (/ 513 25.0) p))
-       (/ 268 25.0))))
+  (cond
+    (< p (/ 1 2.75))    (* 7.5625 p p)
+    (< p (/ 2 2.75))    (+ (* 7.5625 
+                              (- p (/ 1.5 2.75))
+                              (- p (/ 1.5 2.75)))
+                           0.75)
+    (< p (/ 2.5 2.75))  (+ (* 7.5625              
+                              (- p (/ 2.5 2.75))
+                              (- p (/ 2.5 2.75)))
+                           0.9375)
+    :else               (+ (* 7.5625              
+                              (- p (/ 2.625 2.75))
+                              (- p (/ 2.625 2.75)))
+                           0.984375)))
 
 (defn bounce-in [p]
   (- 1 (bounce-out (- 1 p))))
