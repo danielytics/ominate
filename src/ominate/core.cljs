@@ -6,7 +6,7 @@
             [ominate.anims :as anims]
             [ominate.easing :as ease]))
 
-(defn trigger-animation [owner anim easing duration repeats-left & [state]]
+(defn trigger-animation [owner name anim easing duration repeats-left notify & [state]]
   (let [start-time (.now js/Date)
         frame      (:on-frame anim)
         begin      (:on-begin anim)
@@ -30,17 +30,20 @@
             (js/setTimeout do-frame 25)
             (if (and node (> repeats-left 0))
               (trigger-animation
-                owner anim easing duration (dec repeats-left) state)
-              (when end (end node state))))))
+                owner anim easing duration (dec repeats-left) notify state)
+              (do
+                (js/console.log end notify)
+                (when end (end node state))
+                (when notify (notify name)))))))
       25)))
 
-(defn ominate [component & [{:keys [easing anim duration ch repeat]}]]
+(defn ominate [component & [{:keys [easing watch anim duration ch repeat notify name]}]]
   (let [easing-fn  (if easing easing ease/linear) ; Default to linear easing
         duration-t (if duration duration 1000)    ; Default to 1 second duration
-        anim-fn    (if anim anim anims/fade)      ; Default animation to fade in
-        anim-fn    (if (not (map? anim-fn))
-                     (anims/wrap-fn anim-fn)
-                     anim-fn)
+        anim-conf  (if anim anim anims/fade)      ; Default animation to fade in
+        anim-conf  (if (not (map? anim-conf))    ; If anim is a not a map, wrap it
+                     (anims/wrap-fn anim-conf)
+                     anim-conf)
         rep-count  (if repeat repeat 0)]
     (fn [props owner opts]
       (reify
@@ -50,7 +53,9 @@
            :kill-ch (async/chan)})
         om/IDisplayName
         (display-name [_]
-          "Ominate")
+          (if name
+            (str "Ominate[" name "]")
+            "Ominate"))
         om/IDidMount
         (did-mount [_]
           (let [anim-ch (om/get-state owner :anim-ch)
@@ -59,12 +64,14 @@
               (let [[v c] (async/alts! [anim-ch kill-ch])]
                 (when (= c anim-ch)
                   (trigger-animation
-                    owner anim-fn easing-fn duration-t rep-count)
+                    owner name anim-conf easing-fn duration-t rep-count notify)
                   (recur))))))
         om/IWillUnmount
         (will-unmount [_]
           (async/put! (om/get-state owner :kill-ch) true))
         om/IRender
         (render [_]
+          (when (watch props)
+            (async/put! (om/get-state owner :anim-ch) true))
           (om/build component props {:opts opts}))))))
 
