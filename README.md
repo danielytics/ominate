@@ -29,7 +29,7 @@ Example:
 
 (defn example-component [props owner opts]
   (om/component
-    (dom/div #js {:style #js {:width 500 :height 300}
+    (dom/div #js {:style #js {:width 500 :height 300 :background-color "#00f"}
                   :onClick #(async/put! animate true)}
       (:message props))))
 
