@@ -80,7 +80,7 @@
           (om/build component props {:opts opts})))))))
 
 
-(defn ominator [props owner {:keys [ease-fn duration component watch]}]
+(defn ominator [props owner {:keys [easing duration component watch]}]
   (reify
     om/IInitState
     (init-state [_]
@@ -107,9 +107,11 @@
                                       :else [:invalid {}])]
                 ; Handle command
                 (condp = command
+                  ; Animation start command, set up new animation
                   :start (do
                            (om/set-state! owner :animating? true)
                            (om/update! props :ominate-start-time (.now js/Date)))
+                  ; Animation stop command, must run notify callback
                   :stop (om/set-state! owner :animating? false)))
               ; Wait for more commands
               (recur))))))
@@ -121,9 +123,12 @@
               now         (.now js/Date)
               elapsed     (- now start-time)
               value       (/ elapsed duration)]
+          ; If there is time left, then update state with animation info,
+          ; otherwise send a control message to stop the animation
           (if (< elapsed duration)
-            (om/transact! props #(assoc % :onimate-value (ease-fn value)
-                                          :ominate-time now))))))
+            (om/transact! props #(assoc % :ominate-value (easing value)
+                                          :ominate-time now))
+            (async/put! (om/get-state owner :ominate-ch) [:stop {:reason :completed}])))))
 
     om/IWillUnmount
     (will-unmount [_]
@@ -131,7 +136,15 @@
 
     om/IRenderState
     (render-state [_ state]
-      (when (and watch (watch props))
-        (async/put! (om/get-state owner :ominate-ch) :start))
-      (om/build component props {:state (dissoc state :kill-ch)}))))
+      ; If a watch function is configured, run it to see if a new animation
+      ; should start, but only if animation isn't already running
+      (when (and watch
+                 (not (:animating? state))
+                 (watch props))
+        (async/put! (:ominate-ch state) :start))
+      ; Build the animated component, passing local state to it, as well as
+      ; providing convenience functions through opts
+      (om/build component props {:state (dissoc state :kill-ch)
+                                 :opts {:ominate-start #(async/put! (:ominate-ch state) :start)
+                                        :ominate-stop  #(async/put! (:ominate-ch state) :stop)}}))))
 
