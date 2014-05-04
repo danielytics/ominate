@@ -1,4 +1,4 @@
-(defproject ominate "0.1.2"
+(defproject ominate "0.2.0-SNAPSHOT"
   :description "Animate your Om components"
   :url "http://github.com/danielytics/ominate"
   :author "Dan Kersten"
