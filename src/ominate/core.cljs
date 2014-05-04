@@ -32,7 +32,6 @@
               (trigger-animation
                 owner anim easing duration (dec repeats-left) notify state)
               (do
-                (js/console.log end notify)
                 (when end (end node state))
                 (when notify (notify name)))))))
       25)))
