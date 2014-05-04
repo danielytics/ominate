@@ -135,6 +135,8 @@ provided. For example, `anims/fade-color` is defined as:
 (defn fade-color [color] (anims/with-overlay anim/fade {:background-color color :opacity 0}))
 ```
 
+`with-overlay` uses `.-clientWidth` and `.-clientHeight` to size the overlay, so it is the components responsibility to make sure these will return the correct size.
+
 ## Known Bugs
 
 The `ease/elastic-*` and `ease/bounce-*` easing functions are known to not be
