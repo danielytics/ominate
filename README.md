@@ -8,7 +8,7 @@ Animation for Om components
 In your project.clj file, add
 
 ```clj
-[ominate "0.1.0"]
+[ominate "0.1.2"]
 ```
 
 Then import the namespaces:
