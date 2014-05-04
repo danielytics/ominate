@@ -2,7 +2,7 @@
 
 Animation for Om components
 
-### NOTE: This is still alpha - the API has not yet been decided and WILL change! Suggestions welcome.
+#### NOTE: This is still alpha - the API should not yet be considered stable! Suggestions welcome.
 
 ## Usage
 In your project.clj file, add
