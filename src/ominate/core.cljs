@@ -70,7 +70,7 @@
           (async/put! (om/get-state owner :kill-ch) true))
         om/IRender
         (render [_]
-          (when (watch props)
+          (when (and watch (watch props))
             (async/put! (om/get-state owner :anim-ch) true))
           (om/build component props {:opts opts}))))))
 
