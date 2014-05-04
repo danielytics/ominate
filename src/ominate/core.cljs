@@ -6,6 +6,7 @@
             [ominate.anims :as anims]
             [ominate.easing :as ease]))
 
+(comment
 (defn trigger-animation [{:keys [owner name anim easing duration repeat notify state] :as conf}]
   (let [start-time (.now js/Date)
         frame      (:on-frame anim)
@@ -76,5 +77,59 @@
         (render [_]
           (when (and watch (watch props))
             (async/put! (om/get-state owner :anim-ch) true))
-          (om/build component props {:opts opts}))))))
+          (om/build component props {:opts opts})))))))
+
+
+(defn ominator [props owner {:keys [ease-fn duration]}]
+  (reify
+    om/IInitState
+    (init-state [_]
+      {:ominate-ch  (async/chan)
+       :kill-ch     (async/chan)
+       :animating?  false})
+
+    om/IDisplayName
+    (display-name [_]
+      "Ominator")
+
+    om/IWillMount
+    (will-mount [_]
+      (let [control-ch  (om/get-state owner :ominate-ch)
+            kill-ch     (om/get-state owner :kill-ch)]
+        (go-loop []
+          (let [[control chan] (async/alts! [control-ch kill-ch])]
+            (when (= chan control-ch)
+              ; Get command and config from control channel
+              (let [[command conf]  (cond
+                                      (keyword? control) [control {}]
+                                      (and (vector? contorl)
+                                           (= 2 (count control))) control
+                                      :else [:invalid {}])]
+                ; Handle command
+                (condp = command
+                  :start (do
+                           (om/set-state! owner :animating? true)
+                           (om/update! props :ominate-start-time (.now js/Date)))
+                  :stop (om/set-state! owner :animating? false)))
+              ; Wait for more commands
+              (recur))))))
+
+    om/IDidUpdate
+    (did-update [_]
+      (when (om/get-state owner :animating?)
+        (let [start-time  (:ominate-start-time props)
+              now         (.now js/Date)
+              elapsed     (- now start-time)
+              value       (/ elapsed duration)]
+          (if (< elapsed duration)
+            (om/transact! props #(assoc % :onimate-value (ease-fn value)
+                                          :ominate-time now))))))
+
+    om/IWillUnmount
+    (will-unmount [_]
+      (async/put (om/get-state owner :kill-ch) true))
+
+    om/IRenderState
+    (render-state [_ state]
+      (om/build component props {:state state}))))
 
