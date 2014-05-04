@@ -128,7 +128,7 @@ Available animations are:
 
 `(anims/fade-color color)` - create a color overlay and fade its opacity
 
-To apply any animation to an overlay, the `(fn with-overlay anim-fn style)` is
+To apply any animation to an overlay, the `(fn with-overlay [anim-fn style] ...)` is
 provided. For example, `anims/fade-color` is defined as:
 
 ```clj
