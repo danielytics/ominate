@@ -118,22 +118,21 @@ Animations can be functions `(fn [value dom-node] ...)` or maps:
 
 ```clj
 {:on-frame (fn [value dom-node state] ...)
- :on-begin (fn [dom-node]
-...)
+ :on-begin (fn [dom-node] ...)
  :on-end (fn [dom-node state] ...)}
 ```
 
 Available animations are:
 
-`anim/fade` - fade the opacity of the component.
+`anims/fade` - fade the opacity of the component.
 
-`(anim/fade-color color)` - create a color overlay and fade its opacity
+`(anims/fade-color color)` - create a color overlay and fade its opacity
 
 To apply any animation to an overlay, the `(fn with-overlay anim-fn style)` is
-provided. For example, `anim/fade-color` is defined as:
+provided. For example, `anims/fade-color` is defined as:
 
 ```clj
-(defn fade-color [color] (with-overlay anim/fade {:background-color color :opacity 0}))
+(defn fade-color [color] (anims/with-overlay anim/fade {:background-color color :opacity 0}))
 ```
 
 ## Known Bugs
