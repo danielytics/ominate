@@ -11,7 +11,7 @@ In your project.clj file, add
 [ominate "0.1.2"]
 ```
 
-Then import the namespaces:
+Then require the namespaces:
 
 `(require '[ominate.core :refer [ominate]])` - the API entry point.
 
