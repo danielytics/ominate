@@ -80,7 +80,7 @@
           (om/build component props {:opts opts})))))))
 
 
-(defn ominator [props owner {:keys [ease-fn duration]}]
+(defn ominator [props owner {:keys [ease-fn duration component watch]}]
   (reify
     om/IInitState
     (init-state [_]
@@ -102,7 +102,7 @@
               ; Get command and config from control channel
               (let [[command conf]  (cond
                                       (keyword? control) [control {}]
-                                      (and (vector? contorl)
+                                      (and (vector? control)
                                            (= 2 (count control))) control
                                       :else [:invalid {}])]
                 ; Handle command
@@ -115,7 +115,7 @@
               (recur))))))
 
     om/IDidUpdate
-    (did-update [_]
+    (did-update [_ _ _]
       (when (om/get-state owner :animating?)
         (let [start-time  (:ominate-start-time props)
               now         (.now js/Date)
@@ -131,5 +131,7 @@
 
     om/IRenderState
     (render-state [_ state]
-      (om/build component props {:state state}))))
+      (when (and watch (watch props))
+        (async/put! (om/get-state owner :ominate-ch) :start))
+      (om/build component props {:state (dissoc state :kill-ch)}))))
 
