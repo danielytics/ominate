@@ -13,6 +13,7 @@
                 ; Create overlay
                 (let [style (conj style
                                   {:z-index 1000
+                                   :pointer-events "none"
                                    :position "absolute"
                                    :width  (str (.-clientWidth n) "px")
                                    :height (str (.-clientHeight n) "px")})]
