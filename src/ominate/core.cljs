@@ -24,6 +24,7 @@
     (will-mount [_]
       (let [control-ch  (om/get-state owner :ominate-ch)
             kill-ch     (om/get-state owner :kill-ch)]
+        (js/console.log ())
         ; Wait for control messages
         (go-loop []
           (let [[control chan] (async/alts! [control-ch kill-ch])]
@@ -67,6 +68,7 @@
     (did-update [_ _ _]
       (when (om/get-state owner :animating?)
         (let [easing-fn   (om/get-state owner :easing-fn)
+              duration    (om/get-state owner :duration)
               start-time  (:ominate-start-time props)
               now         (.now js/Date)
               elapsed     (- now start-time)
@@ -95,7 +97,7 @@
         (when (and watch-fn
                    (not (:animating? state))
                    (watch-fn props))
-          (async/put! contorl-ch :start))
+          (async/put! control-ch :start))
         ; Build the animated component, passing local state to it, as well as
         ; using opts to provide convenience functions to start and stop the
         ; animations
