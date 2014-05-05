@@ -28,7 +28,7 @@ defaults to fading opacity).
   (:require [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [cljs.core.async :as async]
-            [ominate.core :refer [ominate]
+            [ominate.core :refer [ominate]]
             [ominate.easing :as ease]
             [ominate.anims :as anims]))
 
