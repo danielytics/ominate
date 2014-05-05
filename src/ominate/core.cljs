@@ -101,6 +101,7 @@
         ; animations
         (om/build component props
           {:state (dissoc state :kill-ch :easing-fn :component)
-           :opts {:ominate-start #(async/put! control-ch :start)
+           :opts {:ominate-start (fn [& [conf]]
+                                   (async/put! control-ch [:start (or conf {})]))
                   :ominate-stop  #(async/put! control-ch :stop)}})))))
 
