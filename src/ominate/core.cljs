@@ -24,7 +24,6 @@
     (will-mount [_]
       (let [control-ch  (om/get-state owner :ominate-ch)
             kill-ch     (om/get-state owner :kill-ch)]
-        (js/console.log ())
         ; Wait for control messages
         (go-loop []
           (let [[control chan] (async/alts! [control-ch kill-ch])]
